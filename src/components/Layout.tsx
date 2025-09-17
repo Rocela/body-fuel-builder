@@ -3,6 +3,8 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { 
   User, 
   Moon, 
@@ -35,10 +37,11 @@ const Layout: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background">
+        <OfflineIndicator />
         <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <Link to="/" className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              FitnessPro
+              Body Fuel Builder
             </Link>
             <Button
               variant="ghost"
@@ -53,16 +56,18 @@ const Layout: React.FC = () => {
         <main className="animate-fade-in">
           <Outlet />
         </main>
+        <InstallPrompt />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <OfflineIndicator />
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            FitnessPro
+            Body Fuel Builder
           </Link>
           
           <nav className="hidden md:flex space-x-6">
@@ -115,6 +120,7 @@ const Layout: React.FC = () => {
       <main className="container mx-auto px-4 py-8 animate-fade-in">
         <Outlet />
       </main>
+      <InstallPrompt />
     </div>
   );
 };

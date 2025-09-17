@@ -46,43 +46,102 @@ export const activities: Activity[] = [
   { id: '8', name: 'Boxing', caloriesPerHour: 650, category: 'Cardio' },
 ];
 
+// Offline storage utilities
+const saveToOfflineStorage = (key: string, data: any) => {
+  try {
+    localStorage.setItem(`offline_${key}`, JSON.stringify({
+      data,
+      timestamp: Date.now()
+    }));
+  } catch (error) {
+    console.error('Failed to save to offline storage:', error);
+  }
+};
+
+const getFromOfflineStorage = (key: string) => {
+  try {
+    const stored = localStorage.getItem(`offline_${key}`);
+    return stored ? JSON.parse(stored).data : null;
+  } catch (error) {
+    console.error('Failed to get from offline storage:', error);
+    return null;
+  }
+};
+
 // Placeholder API functions - replace with actual backend calls
 export const loginUser = async (credentials: LoginCredentials): Promise<User> => {
-  // Mock API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  if (credentials.email === 'demo@example.com' && credentials.password === 'demo123') {
-    return {
-      id: '1',
-      email: credentials.email,
-      name: 'Demo User',
-    };
+  try {
+    // Try online first
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (credentials.email === 'demo@example.com' && credentials.password === 'demo123') {
+      const user = {
+        id: '1',
+        email: credentials.email,
+        name: 'Demo User',
+      };
+      saveToOfflineStorage('currentUser', user);
+      return user;
+    }
+    
+    throw new Error('Invalid credentials');
+  } catch (error) {
+    // Fallback to offline storage if available
+    const offlineUser = getFromOfflineStorage('currentUser');
+    if (offlineUser && offlineUser.email === credentials.email) {
+      return offlineUser;
+    }
+    throw error;
   }
-  
-  throw new Error('Invalid credentials');
 };
 
 export const registerUser = async (credentials: RegisterCredentials): Promise<User> => {
-  // Mock API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return {
-    id: Date.now().toString(),
-    email: credentials.email,
-    name: credentials.name,
-  };
+  try {
+    // Mock API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const user = {
+      id: Date.now().toString(),
+      email: credentials.email,
+      name: credentials.name,
+    };
+    
+    saveToOfflineStorage('currentUser', user);
+    return user;
+  } catch (error) {
+    // Still allow registration offline
+    const user = {
+      id: `offline_${Date.now()}`,
+      email: credentials.email,
+      name: credentials.name,
+    };
+    
+    saveToOfflineStorage('currentUser', user);
+    return user;
+  }
 };
 
 export const updateUserProfile = async (profile: UserProfile): Promise<User> => {
-  // Mock API call
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // In real implementation, this would save to backend
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  const updatedUser = { ...currentUser, ...profile };
-  localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-  
-  return updatedUser;
+  try {
+    // Mock API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // In real implementation, this would save to backend
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const updatedUser = { ...currentUser, ...profile };
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    saveToOfflineStorage('currentUser', updatedUser);
+    
+    return updatedUser;
+  } catch (error) {
+    // Still allow updates offline
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const updatedUser = { ...currentUser, ...profile };
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    saveToOfflineStorage('currentUser', updatedUser);
+    
+    return updatedUser;
+  }
 };
 
 export const getUserProfile = async (): Promise<User | null> => {
